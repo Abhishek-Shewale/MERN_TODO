@@ -7,14 +7,30 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ----------------- CORS -----------------
+// ----------------- CORS Configuration -----------------
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+// Allow requests from multiple origins (local development + deployed frontend)
+const allowedOrigins = [
+  'http://localhost:3000',  // Local development
+  'https://mern-todo-phi-rose.vercel.app',  // Your deployed Vercel frontend
+  FRONTEND_URL  // Environment variable
+];
 
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin) return cb(null, true); // allow Postman / server-to-server
+    // Allow requests with no origin (server-to-server, Postman, etc.)
+    if (!origin) return cb(null, true);
+    
+    // Allow requests from whitelisted origins
+    if (allowedOrigins.includes(origin)) {
+      return cb(null, true);
+    }
+    
+    // Allow wildcard if explicitly set
     if (FRONTEND_URL === '*') return cb(null, true);
-    if (origin === FRONTEND_URL) return cb(null, true);
+    
+    // Block all other origins
     cb(new Error('Not allowed by CORS'));
   },
   credentials: true
