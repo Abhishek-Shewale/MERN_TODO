@@ -2,18 +2,25 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
-const API_URL = 'http://localhost:5000/api';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 function App() {
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Helper axios instance (so we don't repeat baseURL)
+  const api = axios.create({
+    baseURL: API_BASE,
+    // withCredentials: true, // uncomment if using cookies/auth
+    timeout: 10000
+  });
+
   // Fetch todos from API
   const fetchTodos = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_URL}/todos`);
+      const response = await api.get('/api/todos'); // <-- fixed path
       setTodos(response.data);
     } catch (error) {
       console.error('Error fetching todos:', error);
@@ -29,7 +36,7 @@ function App() {
     if (!newTodo.trim()) return;
 
     try {
-      const response = await axios.post(`${API_URL}/todos`, {
+      const response = await api.post('/api/todos', {
         text: newTodo.trim()
       });
       setTodos([response.data, ...todos]);
@@ -43,10 +50,10 @@ function App() {
   // Toggle todo completion
   const toggleTodo = async (id, completed) => {
     try {
-      const response = await axios.put(`${API_URL}/todos/${id}`, {
+      const response = await api.put(`/api/todos/${id}`, {
         completed: !completed
       });
-      setTodos(todos.map(todo => 
+      setTodos(todos.map(todo =>
         todo._id === id ? response.data : todo
       ));
     } catch (error) {
@@ -62,7 +69,7 @@ function App() {
     }
 
     try {
-      await axios.delete(`${API_URL}/todos/${id}`);
+      await api.delete(`/api/todos/${id}`);
       setTodos(todos.filter(todo => todo._id !== id));
     } catch (error) {
       console.error('Error deleting todo:', error);
@@ -73,6 +80,7 @@ function App() {
   // Load todos on component mount
   useEffect(() => {
     fetchTodos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -134,8 +142,8 @@ function App() {
         {todos.length > 0 && (
           <div className="stats">
             <p>
-              Total: {todos.length} | 
-              Completed: {todos.filter(todo => todo.completed).length} | 
+              Total: {todos.length} |
+              Completed: {todos.filter(todo => todo.completed).length} |
               Remaining: {todos.filter(todo => !todo.completed).length}
             </p>
           </div>
