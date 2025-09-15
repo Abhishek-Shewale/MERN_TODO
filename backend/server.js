@@ -6,8 +6,21 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// ----------------- at top of file, replace app.use(cors()) -----------------
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+// allow requests from frontend only (and allow Postman/no-origin)
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true); // server-to-server or curl/Postman
+    if (FRONTEND_URL === '*') return cb(null, true); // only if you explicitly set *
+    if (origin === FRONTEND_URL) return cb(null, true);
+    cb(new Error('Not allowed by CORS'));
+  },
+  credentials: true
+}));
+
 // Middleware
-app.use(cors());
 app.use(express.json());
 
 // MongoDB connection

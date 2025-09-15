@@ -15,6 +15,7 @@ npm install
 ```
 PORT=5000
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/todoapp?retryWrites=true&w=majority
+FRONTEND_URL=http://localhost:3000
 ```
 
 4. Start the server:
